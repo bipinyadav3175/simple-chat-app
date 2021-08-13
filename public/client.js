@@ -3,6 +3,7 @@ const socket = io();
 let userName;
 let textarea = document.querySelector("#textarea");
 let messageArea = document.querySelector(".message__area");
+let sendButton = document.querySelector(".send-button");
 
 do {
   userName = prompt("Please enter your name: ");
@@ -19,7 +20,6 @@ function appendMessage(msg, type) {
     `;
   mainDiv.innerHTML = markup;
   messageArea.appendChild(mainDiv);
-  console.log("message from append   func");
 }
 
 function sendMessage(message) {
@@ -40,7 +40,10 @@ textarea.addEventListener("keyup", (e) => {
   if (e.key === "Enter") {
     sendMessage(e.target.value);
   }
-  console.log(e);
+});
+
+sendButton.addEventListener("click", (e) => {
+  sendMessage(textarea.value);
 });
 
 // Receive messages

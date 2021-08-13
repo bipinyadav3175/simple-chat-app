@@ -13,12 +13,15 @@
         <h1>Wassup</h1>
       </div>
       <div class="message__area"></div>
-      <textarea
-        id="textarea"
-        cols="30"
-        rows="1"
-        placeholder="Write a message...."
-      ></textarea>
+      <div class="input__cont">
+        <textarea
+          id="textarea"
+          cols="30"
+          rows="1"
+          placeholder="Write a message...."
+        ></textarea>
+        <div id="send-button" class="send-button">Send</div>
+      </div>
     </section>
 
     <script src="/socket.io/socket.io.js"></script>
