@@ -21,7 +21,21 @@ const io = require("socket.io")(http);
 io.on("connection", (socket) => {
   console.log("connected.........");
 
+  var name;
+  socket.on("connected", ({ userName }) => {
+    name = userName;
+    socket.broadcast.emit("joiningMessage", { userName });
+  });
+
   socket.on("message", (msg) => {
     socket.broadcast.emit("message", msg);
+  });
+
+  socket.on("typingEvent", ({ userName }) => {
+    socket.broadcast.emit("typing", { userName });
+  });
+
+  socket.on("disconnect", (reason) => {
+    socket.broadcast.emit("leaved", { name });
   });
 });
