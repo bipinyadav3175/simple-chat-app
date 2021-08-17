@@ -1,4 +1,5 @@
 const socket = io();
+const ls = window.localStorage;
 
 let userName;
 let textarea = document.querySelector("#textarea");
@@ -6,16 +7,43 @@ let messageArea = document.querySelector(".message__area");
 let sendButton = document.querySelector(".send-button");
 let brandSection = document.querySelector(".brand");
 
+let userDetails = {
+  name: "",
+  id: null,
+};
+
 // Asking for Name
-do {
-  userName = prompt("Please enter your name: ");
-} while (!userName);
+if (!JSON.parse(ls.getItem("user"))) {
+  do {
+    userName = prompt("Please enter your name: ");
+  } while (!userName);
+
+  userDetails = {
+    name: userName,
+    id: null,
+  };
+  ls.setItem("user", JSON.stringify(userDetails));
+} else {
+  userName = JSON.parse(ls.getItem("user")).name;
+}
 
 // On Connection
 socket.emit("connected", { userName });
 socket.on("joiningMessage", ({ userName }) => {
   showLogs(userName, "joined");
 });
+
+// Getting Id
+if (!JSON.parse(ls.getItem("user")).id) {
+  // Get Id from server
+  socket.on("getId", ({ id }) => {
+    userDetails = {
+      name: userName,
+      id: id,
+    };
+    ls.setItem("user", JSON.stringify(userDetails));
+  });
+}
 
 // Adding message to DOM
 function appendMessage(msg, type) {
@@ -24,7 +52,7 @@ function appendMessage(msg, type) {
   mainDiv.classList.add(className, "message");
 
   let markup = `
-    <h4>${msg.user}</h4>
+    <h4>${msg.user.name}</h4>
     <p>${msg.message}</p>
     `;
   mainDiv.innerHTML = markup;
@@ -32,14 +60,71 @@ function appendMessage(msg, type) {
 }
 
 // Storing the message in Localstorage
+// Format of Chats
+// Chat: [
+//   {
+//     type: 'text',
+//     user: {
+//       name: 'fdsff',
+//       id: 'dffdff'
+//     },
+//     message: 'fdfdfdsfdsfdsfdfdf'
+//   },
+//   {
+//     type: 'image',
+//     user: {
+//       name: 'fdsff',
+//       id: 'dffdff'
+//     },
+//     image: 'dfdfdsfdsfdsfd'
+//   }
+// ]
+
+let chats;
+if (!ls.getItem("chats")) {
+  chats = [];
+  ls.setItem("chats", JSON.stringify(chats));
+} else {
+  chats = JSON.parse(ls.getItem("chats"));
+  chats.map((chat) => {
+    if (chat.type === "text") {
+      let user = chat.user;
+      let type =
+        chat.user.id == JSON.parse(ls.getItem("user")).id
+          ? "outgoing"
+          : "incoming";
+      const msg = {
+        user: { name: user.name, id: user.id },
+        message: chat.message,
+      };
+      appendMessage(msg, type);
+    }
+  });
+}
 
 // Sending Message to Server
 function sendMessage(message) {
+  textarea.focus();
   if (message.length == 0) {
     return;
   } else {
+    let allChats = JSON.parse(ls.getItem("chats"));
+    allChats.push({
+      type: "text",
+      user: {
+        name: userName,
+        id: JSON.parse(ls.getItem("user")).id,
+      },
+      message: message.trim(),
+    });
+
+    ls.setItem("chats", JSON.stringify(allChats));
+
     let msg = {
-      user: userName,
+      user: {
+        name: userName,
+        id: JSON.parse(ls.getItem("user")).id,
+      },
       message: message.trim(),
     };
     // Apend
@@ -92,7 +177,23 @@ sendButton.addEventListener("click", (e) => {
 
 // Receive messages
 socket.on("message", (msg) => {
-  appendMessage(msg, "incoming");
+  let allChats = JSON.parse(ls.getItem("chats"));
+  allChats.push({
+    type: "text",
+    user: {
+      name: msg.user.name,
+      id: msg.user.id,
+    },
+    message: msg.message,
+  });
+
+  ls.setItem("chats", JSON.stringify(allChats));
+  console.log(msg);
+  let newMsg = {
+    user: { name: msg.user.name, id: msg.user.id },
+    message: msg.message,
+  };
+  appendMessage(newMsg, "incoming");
   scrollToBottom();
 });
 
@@ -102,5 +203,6 @@ function scrollToBottom() {
 
 // On Disconnection
 socket.on("leaved", ({ name }) => {
+  console.log(name);
   showLogs(name, "leaved");
 });
