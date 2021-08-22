@@ -15,12 +15,14 @@
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
+    
     <section class="chat__section">
       <div class="brand">
         <h1>Wassup</h1>
       </div>
       <div class="message__area"></div>
       <div class="input__cont">
+        <span class="gif">GIF</span>
         <textarea
           id="textarea"
           cols="30"
@@ -32,6 +34,13 @@
         </div>
       </div>
     </section>
+    <div class="gif-cont">
+      <i class="fas fa-times close"></i>
+      <input type="text" name="gif-search" id="gif-input" placeholder="Seach GIFs">
+      <div class="allGifs">
+        
+      </div>
+    </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="/client.js"></script>

@@ -22,26 +22,20 @@ app.get("/", (req, res) => {
 const io = require("socket.io")(http);
 
 
+
 io.on("connection", (socket) => {
   console.log("connected.........");
 
-  var name;
-  var id;
-  
-  
-
-  socket.on("connected", function( {userName} ) {
-
-    id = name + "_" + Math.floor(Math.random() * 1e9);
+  var id; 
+  var name
+  socket.on("connected", ( {userName} ) =>{
+    id = userName + "_" + Math.floor(Math.random() * 1e9);
     socket.emit("getId", { id });
     socket.broadcast.emit("joiningMessage", { userName });
-    name = userName;
+    name = userName
+    
   });
-
-  console.log(name);
-
   
-
   socket.on("message", (msg) => {
     socket.broadcast.emit("message", msg);
   });
@@ -50,7 +44,11 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("typing", { userName });
   });
 
-  socket.on("disconnect", (reason) => {
-    socket.broadcast.emit("leaved", name);
+  socket.on("sendGif", (gifData)=>{
+    socket.broadcast.emit("getGif", gifData)
+  })
+
+  socket.on("disconnect", () => {
+    socket.broadcast.emit("leaved", {name});
   });
 });
